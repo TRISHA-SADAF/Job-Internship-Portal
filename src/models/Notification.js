@@ -1,4 +1,3 @@
-
 'use strict';
 
 const mongoose = require('mongoose');
@@ -29,6 +28,10 @@ const schema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Job'
   },
+  relatedApplication: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Application'
+  },
   read: {
     type: Boolean,
     default: false
@@ -37,5 +40,7 @@ const schema = new mongoose.Schema({
   timestamps: true,
   versionKey: false
 });
+
+schema.index({ user: 1, read: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Notification', schema);
