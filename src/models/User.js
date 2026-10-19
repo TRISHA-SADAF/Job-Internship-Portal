@@ -1,4 +1,3 @@
-
 'use strict';
 
 const mongoose = require('mongoose');
@@ -18,7 +17,7 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
     maxlength: 254,
-    match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Please enter a valid email address.']
   },
   passwordHash: {
     type: String,
@@ -42,10 +41,11 @@ const userSchema = new mongoose.Schema({
     maxlength: 150
   },
   education: [{
-    qualification: String,
-    institute: String,
-    year: Number,
-    percentage: Number
+    _id: false,
+    qualification: { type: String, trim: true, maxlength: 100 },
+    institute: { type: String, trim: true, maxlength: 150 },
+    year: { type: Number, min: 1950, max: 2100 },
+    percentage: { type: Number, min: 0, max: 100 }
   }],
   skills: [{
     type: String,
@@ -56,25 +56,52 @@ const userSchema = new mongoose.Schema({
     type: String,
     maxlength: 500
   },
+  resumeOriginalName: {
+    type: String,
+    maxlength: 255
+  },
   resumeAnalysis: {
     type: mongoose.Schema.Types.Mixed,
     default: null
   },
+  savedJobs: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Job'
+  }],
+
   companyName: {
     type: String,
     trim: true,
     maxlength: 150
   },
+  companyWebsite: { type: String, trim: true, maxlength: 200 },
+  companyDescription: { type: String, trim: true, maxlength: 2000 },
+  industry: { type: String, trim: true, maxlength: 100 },
+  companySize: { type: String, trim: true, maxlength: 50 },
+  companyLocation: { type: String, trim: true, maxlength: 150 },
+
   recruiterVerification: {
     type: String,
     enum: ['pending', 'verified', 'rejected'],
-    default: 'pending'
+    default: function () {
+      return this.role === 'recruiter' ? 'pending' : undefined;
+    }
   },
+  verificationMessage: { type: String, trim: true, maxlength: 1000 },
+  verificationDocumentPath: { type: String, maxlength: 500 },
+  verificationDocumentName: { type: String, maxlength: 255 },
+  verificationRequestedAt: Date,
+  verificationReviewedAt: Date,
+  verificationRemark: { type: String, trim: true, maxlength: 500 },
+
   accountStatus: {
     type: String,
     enum: ['active', 'suspended'],
     default: 'active'
-  }
+  },
+
+  resetTokenHash: { type: String, select: false },
+  resetTokenExpires: { type: Date, select: false }
 }, {
   timestamps: true,
   versionKey: false
