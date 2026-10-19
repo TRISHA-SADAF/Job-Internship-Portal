@@ -1,4 +1,3 @@
-
 'use strict';
 
 const express = require('express');
@@ -14,8 +13,10 @@ router.get('/health', (_req, res) => res.json({
 
 router.use(require('./auth'));
 router.use(require('./profile'));
+router.use(require('./recruiters'));
 router.use(require('./jobs'));
 router.use(require('./applications'));
+router.use(require('./notifications'));
 router.use(require('./admin'));
 
 module.exports = router;
