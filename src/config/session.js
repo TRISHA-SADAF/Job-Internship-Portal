@@ -1,21 +1,18 @@
-
 'use strict';
 
 const session = require('express-session');
-const MongoStore = require('connect-mongo');
+const connectMongo = require('connect-mongo');
+
+const MongoStore = connectMongo.MongoStore || connectMongo.default || connectMongo;
+const mongoose = require('mongoose');
 const env = require('./env');
 
 function createSessionMiddleware() {
-  return session({
+  const options = {
     name: env.SESSION_NAME,
     secret: env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl: env.MONGODB_URI,
-      collectionName: 'sessions',
-      ttl: 86400
-    }),
     cookie: {
       httpOnly: true,
       secure: env.IS_PRODUCTION,
@@ -23,7 +20,17 @@ function createSessionMiddleware() {
       maxAge: 86400000,
       path: '/'
     }
-  });
+  };
+
+  if (!env.IS_TEST) {
+    options.store = MongoStore.create({
+      client: mongoose.connection.getClient(),
+      collectionName: 'sessions',
+      ttl: 86400
+    });
+  }
+
+  return session(options);
 }
 
 module.exports = { createSessionMiddleware };
