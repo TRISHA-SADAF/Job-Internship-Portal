@@ -1,7 +1,16 @@
-
 'use strict';
 
 const mongoose = require('mongoose');
+
+const STATUSES = [
+  'submitted',
+  'under_review',
+  'shortlisted',
+  'interview',
+  'selected',
+  'rejected',
+  'withdrawn'
+];
 
 const schema = new mongoose.Schema({
   student: {
@@ -27,15 +36,7 @@ const schema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: [
-      'submitted',
-      'under_review',
-      'shortlisted',
-      'interview',
-      'selected',
-      'rejected',
-      'withdrawn'
-    ],
+    enum: STATUSES,
     default: 'submitted'
   },
   feedback: {
@@ -43,6 +44,12 @@ const schema = new mongoose.Schema({
     trim: true,
     maxlength: 500
   },
+  statusHistory: [{
+    _id: false,
+    status: { type: String, enum: STATUSES },
+    feedback: { type: String, maxlength: 500 },
+    at: { type: Date, default: Date.now }
+  }],
   extractedSkills: [{
     type: String,
     trim: true,
@@ -72,3 +79,4 @@ schema.index({ student: 1, job: 1 }, { unique: true });
 schema.index({ job: 1, status: 1 });
 
 module.exports = mongoose.model('Application', schema);
+module.exports.STATUSES = STATUSES;
