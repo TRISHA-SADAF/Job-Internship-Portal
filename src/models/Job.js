@@ -79,7 +79,7 @@ const jobSchema = new mongoose.Schema({
   },
   deadline: {
     type: Date,
-    required: true
+    required: [true, 'Application deadline is required.']
   },
   status: {
     type: String,
@@ -98,11 +98,7 @@ const jobSchema = new mongoose.Schema({
 
 jobSchema.index({ status: 1, type: 1, createdAt: -1 });
 
-jobSchema.index({
-  title: 'text',
-  companyName: 'text',
-  description: 'text'
-});
+jobSchema.index({ status: 1, deadline: 1 });
 
 jobSchema.pre('validate', function () {
   if (
