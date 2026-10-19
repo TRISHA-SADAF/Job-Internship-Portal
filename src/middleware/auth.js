@@ -1,29 +1,48 @@
-
 'use strict';
 
 const User = require('../models/User');
 
+async function loadSessionUser(req) {
+  if (!req.session || !req.session.userId) return null;
+
+  const user = await User.findById(req.session.userId);
+
+  if (!user || user.accountStatus !== 'active') {
+    await new Promise(resolve => req.session.destroy(() => resolve()));
+    return null;
+  }
+
+  return user;
+}
+
 async function requireAuth(req, res, next) {
   try {
-    if (!req.session.userId) {
+    if (!req.session || !req.session.userId) {
       return res.status(401).json({
         success: false,
         message: 'Please log in first.'
       });
     }
 
-    const user = await User.findById(req.session.userId);
+    const user = await loadSessionUser(req);
 
-    if (!user || user.accountStatus !== 'active') {
-      req.session.destroy(() => {});
-
+    if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Session is invalid. Please log in again.'
+        message: 'Session is invalid or your account is suspended. Please log in again.'
       });
     }
 
     req.user = user;
+    next();
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function optionalAuth(req, _res, next) {
+  try {
+    req.user = await loadSessionUser(req);
     next();
   } catch (err) {
     next(err);
@@ -43,4 +62,4 @@ function allowRoles(...roles) {
   };
 }
 
-module.exports = { requireAuth, allowRoles };
+module.exports = { requireAuth, optionalAuth, allowRoles };
